@@ -10,7 +10,7 @@ const defaultSettings: AppSettings = {
 };
 
 const store = new Conf<AppConfig>({
-  projectName: "batch-run",
+  projectName: "batch-run-local",
   defaults: {
     projects: [],
     settings: defaultSettings,

@@ -1,11 +1,11 @@
-# batch-run
+# batch-run-local
 
 一个本地 npm scripts 管理工具，支持通过命令行配置多个项目，并从 CLI 或本地 Web 页面一键打开 Git Bash 执行项目脚本。
 
 ## 安装
 
 ```bash
-npm install -g batch-run
+npm install -g batch-run-local
 ```
 
 本地开发：
