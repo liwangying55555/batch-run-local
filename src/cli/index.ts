@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { cac } from 'cac'
+import { readFileSync } from 'node:fs'
 import prompts from 'prompts'
 import { addCommand } from './commands/add.js'
 import { configCommand } from './commands/config.js'
@@ -7,6 +8,11 @@ import { listCommand } from './commands/list.js'
 import { removeCommand } from './commands/remove.js'
 import { runCommand } from './commands/run.js'
 import { uiCommand } from './commands/ui.js'
+
+const packageJson = JSON.parse(
+  readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
+) as { version?: string }
+const packageVersion = packageJson.version ?? '0.0.0'
 
 const cli = cac('br')
 
@@ -23,7 +29,7 @@ cli.command('ui', '打开 Web 管理页面').action(wrap(uiCommand))
 cli.command('config', '配置 Git Bash 路径和 Web 端口').action(wrap(configCommand))
 
 cli.help()
-cli.version('0.1.0')
+cli.version(packageVersion)
 
 async function mainMenu(): Promise<void> {
   const answer = await prompts({
