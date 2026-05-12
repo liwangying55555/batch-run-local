@@ -64,6 +64,27 @@ export function removeProject(projectId: string): boolean {
   return nextProjects.length !== projects.length;
 }
 
+export function reorderProjects(projectIds: string[]): ProjectConfig[] {
+  const projects = getProjects();
+  const projectMap = new Map(projects.map((project) => [project.id, project]));
+  const uniqueProjectIds = new Set(projectIds);
+
+  if (uniqueProjectIds.size !== projects.length) {
+    throw new Error("项目排序数据不完整");
+  }
+
+  const nextProjects = projectIds.map((projectId) => {
+    const project = projectMap.get(projectId);
+    if (!project) {
+      throw new Error("项目排序包含不存在的项目");
+    }
+    return project;
+  });
+
+  store.set("projects", nextProjects);
+  return nextProjects;
+}
+
 export function getSettings(): AppSettings {
   return getConfig().settings;
 }

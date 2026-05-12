@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import open from "open";
-import { addProject, getProject, getProjects, removeProject } from "../config/store.js";
+import { addProject, getProject, getProjects, removeProject, reorderProjects } from "../config/store.js";
 import { readPackageScripts } from "../project/package-json.js";
 import { runScriptInGitBash } from "../runner/git-bash.js";
 import type { AppSettings } from "../shared/types.js";
@@ -12,6 +12,10 @@ type AddProjectBody = {
 
 type RunScriptBody = {
   script?: string;
+};
+
+type ReorderProjectsBody = {
+  projectIds?: string[];
 };
 
 export async function registerApiRoutes(app: FastifyInstance, settings: AppSettings): Promise<void> {
@@ -29,6 +33,21 @@ export async function registerApiRoutes(app: FastifyInstance, settings: AppSetti
 
     const project = await addProject({ name, root });
     return { project };
+  });
+
+  app.put<{ Body: ReorderProjectsBody }>("/api/projects/order", async (request, reply) => {
+    const projectIds = request.body.projectIds;
+
+    if (!Array.isArray(projectIds) || !projectIds.every((projectId) => typeof projectId === "string")) {
+      return reply.code(400).send({ message: "项目排序数据无效" });
+    }
+
+    try {
+      return { projects: reorderProjects(projectIds) };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "保存项目排序失败";
+      return reply.code(400).send({ message });
+    }
   });
 
   app.delete<{ Params: { id: string } }>("/api/projects/:id", async (request, reply) => {

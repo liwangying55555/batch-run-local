@@ -1,6 +1,8 @@
 const state = {
   projects: [],
   currentProjectId: undefined,
+  draggedProjectId: undefined,
+  suppressProjectClick: false,
 };
 
 const projectList = document.querySelector("#projectList");
@@ -8,6 +10,7 @@ const scriptList = document.querySelector("#scriptList");
 const statusBox = document.querySelector("#status");
 const currentProjectTitle = document.querySelector("#currentProjectTitle");
 const projectForm = document.querySelector("#projectForm");
+const projectCount = document.querySelector("#projectCount");
 const refreshProjects = document.querySelector("#refreshProjects");
 const openProjectRoot = document.querySelector("#openProjectRoot");
 
@@ -56,6 +59,8 @@ async function loadProjects() {
 }
 
 function renderProjects() {
+  projectCount.textContent = `共 ${state.projects.length} 个项目`;
+
   if (state.projects.length === 0) {
     projectList.innerHTML = `<div class="empty">暂无项目，请先新增。</div>`;
     currentProjectTitle.textContent = "请选择项目";
@@ -69,6 +74,8 @@ function renderProjects() {
   for (const project of state.projects) {
     const card = document.createElement("article");
     card.className = `project-card ${project.id === state.currentProjectId ? "active" : ""}`;
+    card.draggable = true;
+    card.dataset.projectId = project.id;
     card.innerHTML = `
       <div class="project-card-main">
         <h3>${escapeHtml(project.name)}</h3>
@@ -77,7 +84,48 @@ function renderProjects() {
       <button class="danger project-delete" type="button" aria-label="删除 ${escapeHtml(project.name)}">删除</button>
     `;
 
-    card.addEventListener("click", () => selectProject(project.id));
+    card.addEventListener("click", () => {
+      if (state.suppressProjectClick) {
+        return;
+      }
+      selectProject(project.id);
+    });
+    card.addEventListener("dragstart", (event) => {
+      state.draggedProjectId = project.id;
+      state.suppressProjectClick = true;
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", project.id);
+      card.classList.add("dragging");
+    });
+    card.addEventListener("dragover", (event) => {
+      if (!state.draggedProjectId || state.draggedProjectId === project.id) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      card.classList.toggle("drop-after", shouldDropAfter(event, card));
+    });
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("drop-after");
+    });
+    card.addEventListener("drop", (event) => {
+      if (!state.draggedProjectId) {
+        return;
+      }
+
+      event.preventDefault();
+      card.classList.remove("drop-after");
+      moveProject(state.draggedProjectId, project.id, shouldDropAfter(event, card)).catch((error) => {
+        setStatus(error.message);
+      });
+    });
+    card.addEventListener("dragend", () => {
+      state.draggedProjectId = undefined;
+      card.classList.remove("dragging", "drop-after");
+      setTimeout(() => {
+        state.suppressProjectClick = false;
+      }, 0);
+    });
     card.querySelector(".project-delete").addEventListener("click", (event) => {
       event.stopPropagation();
       deleteProject(project);
@@ -135,6 +183,51 @@ async function runScript(projectId, script) {
   });
 
   setStatus(`已打开 Git Bash 执行：npm run ${script}${data.pid ? `\nPID: ${data.pid}` : ""}`);
+}
+
+async function moveProject(draggedProjectId, targetProjectId, insertAfterTarget) {
+  if (draggedProjectId === targetProjectId) {
+    return;
+  }
+
+  const nextProjects = [...state.projects];
+  const draggedIndex = nextProjects.findIndex((project) => project.id === draggedProjectId);
+  if (draggedIndex < 0) {
+    return;
+  }
+
+  const [draggedProject] = nextProjects.splice(draggedIndex, 1);
+  const targetIndex = nextProjects.findIndex((project) => project.id === targetProjectId);
+  if (targetIndex < 0) {
+    return;
+  }
+
+  nextProjects.splice(targetIndex + (insertAfterTarget ? 1 : 0), 0, draggedProject);
+  state.projects = nextProjects;
+  renderProjects();
+
+  try {
+    const data = await request("/api/projects/order", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        projectIds: state.projects.map((project) => project.id),
+      }),
+    });
+    state.projects = data.projects;
+    renderProjects();
+    setStatus("项目排序已保存。");
+  } catch (error) {
+    await loadProjects();
+    throw error;
+  }
+}
+
+function shouldDropAfter(event, element) {
+  const rect = element.getBoundingClientRect();
+  return event.clientY > rect.top + rect.height / 2;
 }
 
 async function deleteProject(project) {
