@@ -1,0 +1,170 @@
+:root {
+  color-scheme: light;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color: #172033;
+  background: #eef2f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  padding: 10px 14px;
+}
+
+button.secondary {
+  background: #e2e8f0;
+  color: #172033;
+}
+
+button.danger {
+  background: #dc2626;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 20px;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.panel {
+  border: 1px solid #dbe3ef;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
+  padding: 20px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.form label {
+  display: grid;
+  gap: 6px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.project-list,
+.script-list {
+  display: grid;
+  gap: 10px;
+}
+
+.project-card,
+.script-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.project-card {
+  cursor: pointer;
+}
+
+.project-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.project-card h3,
+.script-card h3 {
+  margin: 0 0 6px;
+}
+
+.path,
+.command {
+  overflow-wrap: anywhere;
+  color: #64748b;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 13px;
+}
+
+.script-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.script-card > div {
+  min-width: 0;
+}
+
+.empty {
+  color: #64748b;
+}
+
+.status {
+  min-height: 80px;
+  margin: 20px 0 0;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #dbeafe;
+  padding: 14px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+}

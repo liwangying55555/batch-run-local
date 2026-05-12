@@ -1,0 +1,44 @@
+{
+  "name": "batch-run",
+  "version": "1.0.0",
+  "description": "Manage and run package.json scripts across local projects from CLI and a local web UI.",
+  "type": "module",
+  "bin": {
+    "br": "./dist/cli/index.js",
+    "batch-run": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "build": "tsc --noEmit && tsup && node scripts/copy-web.mjs",
+    "start": "node dist/cli/index.js"
+  },
+  "keywords": [
+    "cli",
+    "scripts",
+    "package-json",
+    "git-bash"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cac": "^6.7.14",
+    "conf": "^12.0.0",
+    "fastify": "^4.29.1",
+    "open": "^10.2.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/prompts": "latest",
+    "tsup": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}

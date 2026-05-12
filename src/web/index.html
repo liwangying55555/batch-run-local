@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Batch Run</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel sidebar">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Batch Run</p>
+            <h1>项目配置</h1>
+          </div>
+          <button id="refreshProjects" type="button">刷新</button>
+        </div>
+
+        <form id="projectForm" class="form">
+          <label>
+            项目名称
+            <input id="projectName" name="name" placeholder="例如：后台服务" required />
+          </label>
+          <label>
+            项目根路径
+            <input id="projectRoot" name="root" placeholder="C:\wang\project\server" required />
+          </label>
+          <button type="submit">新增项目</button>
+        </form>
+
+        <div id="projectList" class="project-list"></div>
+      </section>
+
+      <section class="panel content">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">package.json</p>
+            <h2 id="currentProjectTitle">请选择项目</h2>
+          </div>
+          <button id="openProjectRoot" class="secondary" type="button" disabled>打开项目目录</button>
+        </div>
+
+        <div id="scriptList" class="script-list empty">选择左侧项目后读取 scripts</div>
+        <pre id="status" class="status"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
