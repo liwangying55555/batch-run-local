@@ -70,11 +70,18 @@ function renderProjects() {
     const card = document.createElement("article");
     card.className = `project-card ${project.id === state.currentProjectId ? "active" : ""}`;
     card.innerHTML = `
-      <h3>${escapeHtml(project.name)}</h3>
-      <div class="path">${escapeHtml(project.root)}</div>
+      <div class="project-card-main">
+        <h3>${escapeHtml(project.name)}</h3>
+        <div class="path">${escapeHtml(project.root)}</div>
+      </div>
+      <button class="danger project-delete" type="button" aria-label="删除 ${escapeHtml(project.name)}">删除</button>
     `;
 
     card.addEventListener("click", () => selectProject(project.id));
+    card.querySelector(".project-delete").addEventListener("click", (event) => {
+      event.stopPropagation();
+      deleteProject(project);
+    });
     projectList.append(card);
   }
 }
@@ -128,6 +135,27 @@ async function runScript(projectId, script) {
   });
 
   setStatus(`已打开 Git Bash 执行：npm run ${script}${data.pid ? `\nPID: ${data.pid}` : ""}`);
+}
+
+async function deleteProject(project) {
+  const confirmed = window.confirm(`确定要删除项目“${project.name}”吗？\n\n${project.root}`);
+  if (!confirmed) {
+    return;
+  }
+
+  await request(`/api/projects/${project.id}`, {
+    method: "DELETE",
+  });
+
+  if (state.currentProjectId === project.id) {
+    state.currentProjectId = undefined;
+    currentProjectTitle.textContent = "请选择项目";
+    openProjectRoot.disabled = true;
+    scriptList.textContent = "选择左侧项目后读取 scripts";
+  }
+
+  setStatus(`已删除项目：${project.name}`);
+  await loadProjects();
 }
 
 async function request(url, options) {
