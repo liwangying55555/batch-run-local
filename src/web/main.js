@@ -3,6 +3,7 @@ const state = {
   currentProjectId: undefined,
   draggedProjectId: undefined,
   suppressProjectClick: false,
+  editingProjectId: undefined,
 };
 
 const projectList = document.querySelector("#projectList");
@@ -17,11 +18,11 @@ const openProjectConfig = document.querySelector("#openProjectConfig");
 const closeProjectConfig = document.querySelector("#closeProjectConfig");
 const projectConfigModal = document.querySelector("#projectConfigModal");
 const projectNameInput = document.querySelector("#projectName");
+const projectRootInput = document.querySelector("#projectRoot");
+const projectConfigTitle = document.querySelector("#projectConfigTitle");
+const projectSubmit = document.querySelector("#projectSubmit");
 
-openProjectConfig.addEventListener("click", () => {
-  projectConfigModal.hidden = false;
-  projectNameInput.focus();
-});
+openProjectConfig.addEventListener("click", openCreateProjectModal);
 
 closeProjectConfig.addEventListener("click", closeConfigModal);
 
@@ -43,9 +44,10 @@ projectForm.addEventListener("submit", async (event) => {
   const formData = new FormData(projectForm);
   const name = String(formData.get("name") ?? "");
   const root = String(formData.get("root") ?? "");
+  const editingProjectId = state.editingProjectId;
 
-  await request("/api/projects", {
-    method: "POST",
+  await request(editingProjectId ? `/api/projects/${editingProjectId}` : "/api/projects", {
+    method: editingProjectId ? "PUT" : "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -54,7 +56,7 @@ projectForm.addEventListener("submit", async (event) => {
 
   projectForm.reset();
   closeConfigModal();
-  setStatus(`已新增项目：${name}`);
+  setStatus(editingProjectId ? `已更新项目：${name}` : `已新增项目：${name}`);
   await loadProjects();
 });
 
@@ -105,7 +107,10 @@ function renderProjects() {
         <h3>${escapeHtml(project.name)}</h3>
         <div class="path">${escapeHtml(project.root)}</div>
       </div>
-      <button class="danger project-delete" type="button" aria-label="删除 ${escapeHtml(project.name)}">删除</button>
+      <div class="project-actions">
+        <button class="project-edit" type="button" aria-label="编辑 ${escapeHtml(project.name)}">编辑</button>
+        <button class="danger project-delete" type="button" aria-label="删除 ${escapeHtml(project.name)}">删除</button>
+      </div>
     `;
 
     card.addEventListener("click", () => {
@@ -154,6 +159,10 @@ function renderProjects() {
       event.stopPropagation();
       deleteProject(project);
     });
+    card.querySelector(".project-edit").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openEditProjectModal(project);
+    });
     projectList.append(card);
   }
 }
@@ -189,7 +198,7 @@ function renderScripts(projectId, scripts) {
         <h3>${escapeHtml(name)}</h3>
         <div class="command">${escapeHtml(command)}</div>
       </div>
-      <button type="button">执行</button>
+      <button type="button" class="secondary">执行</button>
     `;
 
     card.querySelector("button").addEventListener("click", () => runScript(projectId, name));
@@ -254,8 +263,28 @@ function shouldDropAfter(event, element) {
   return event.clientY > rect.top + rect.height / 2;
 }
 
+function openCreateProjectModal() {
+  state.editingProjectId = undefined;
+  projectForm.reset();
+  projectConfigTitle.textContent = "项目配置";
+  projectSubmit.textContent = "新增项目";
+  projectConfigModal.hidden = false;
+  projectNameInput.focus();
+}
+
+function openEditProjectModal(project) {
+  state.editingProjectId = project.id;
+  projectConfigTitle.textContent = "编辑项目";
+  projectSubmit.textContent = "保存修改";
+  projectNameInput.value = project.name;
+  projectRootInput.value = project.root;
+  projectConfigModal.hidden = false;
+  projectNameInput.focus();
+}
+
 function closeConfigModal() {
   projectConfigModal.hidden = true;
+  state.editingProjectId = undefined;
 }
 
 async function deleteProject(project) {

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import open from "open";
-import { addProject, getProject, getProjects, removeProject, reorderProjects } from "../config/store.js";
+import { addProject, getProject, getProjects, removeProject, reorderProjects, updateProject } from "../config/store.js";
 import { readPackageScripts } from "../project/package-json.js";
 import { runScriptInGitBash } from "../runner/git-bash.js";
 import type { AppSettings } from "../shared/types.js";
@@ -9,6 +9,8 @@ type AddProjectBody = {
   name?: string;
   root?: string;
 };
+
+type UpdateProjectBody = AddProjectBody;
 
 type RunScriptBody = {
   script?: string;
@@ -46,6 +48,27 @@ export async function registerApiRoutes(app: FastifyInstance, settings: AppSetti
       return { projects: reorderProjects(projectIds) };
     } catch (error) {
       const message = error instanceof Error ? error.message : "保存项目排序失败";
+      return reply.code(400).send({ message });
+    }
+  });
+
+  app.put<{ Params: { id: string }; Body: UpdateProjectBody }>("/api/projects/:id", async (request, reply) => {
+    const name = request.body.name?.trim();
+    const root = request.body.root?.trim();
+
+    if (!name || !root) {
+      return reply.code(400).send({ message: "项目名称和根路径不能为空" });
+    }
+
+    try {
+      const project = await updateProject(request.params.id, { name, root });
+      if (!project) {
+        return reply.code(404).send({ message: "项目不存在" });
+      }
+
+      return { project };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "更新项目失败";
       return reply.code(400).send({ message });
     }
   });

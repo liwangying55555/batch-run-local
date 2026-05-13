@@ -1,23 +1,23 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
+  <meta>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Batch Run</title>
     <link rel="stylesheet" href="/style.css" />
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  </head>
+  </meta>
   <body>
     <main class="app">
       <section class="panel sidebar">
         <div class="panel-header">
           <div>
             <p class="eyebrow">Batch Run</p>
-            <h1>项目列表</h1>
+            <h2>项目列表</h2>
             <p id="projectCount" class="project-count">共 0 个项目</p>
           </div>
           <div class="header-actions">
-            <button id="openProjectConfig" class="secondary" type="button">项目配置</button>
+            <button id="openProjectConfig" type="button" class="secondary">新增项目</button>
             <button id="refreshProjects" type="button">刷新</button>
           </div>
         </div>
@@ -31,7 +31,7 @@
             <p class="eyebrow">package.json</p>
             <h2 id="currentProjectTitle">请选择项目</h2>
           </div>
-          <button id="openProjectRoot" class="secondary" type="button" disabled>打开项目目录</button>
+          <button id="openProjectRoot" type="button" disabled>打开项目目录</button>
         </div>
 
         <div class="content-body">
@@ -48,7 +48,7 @@
             <p class="eyebrow">Project Settings</p>
             <h2 id="projectConfigTitle">项目配置</h2>
           </div>
-          <button id="closeProjectConfig" class="secondary" type="button">关闭</button>
+          <button id="closeProjectConfig" type="button">关闭</button>
         </div>
 
         <form id="projectForm" class="form">
@@ -60,7 +60,7 @@
             项目根路径
             <input id="projectRoot" name="root" placeholder="C:\wang\project\server" required />
           </label>
-          <button type="submit">新增项目</button>
+          <button id="projectSubmit" type="submit" class="secondary">新增项目</button>
         </form>
       </section>
     </div>

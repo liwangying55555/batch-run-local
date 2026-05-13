@@ -57,6 +57,35 @@ export async function addProject(input: { name: string; root: string }): Promise
   return project;
 }
 
+export async function updateProject(
+  projectId: string,
+  input: { name: string; root: string },
+): Promise<ProjectConfig | undefined> {
+  const root = resolve(input.root);
+  await access(root);
+
+  const projects = getProjects();
+  const projectIndex = projects.findIndex((project) => project.id === projectId);
+  if (projectIndex < 0) {
+    return undefined;
+  }
+
+  if (projects.some((project) => project.id !== projectId && project.root.toLowerCase() === root.toLowerCase())) {
+    throw new Error("该项目路径已经存在");
+  }
+
+  const nextProject: ProjectConfig = {
+    ...projects[projectIndex],
+    name: input.name.trim(),
+    root,
+    updatedAt: Date.now(),
+  };
+  const nextProjects = [...projects];
+  nextProjects[projectIndex] = nextProject;
+  store.set("projects", nextProjects);
+  return nextProject;
+}
+
 export function removeProject(projectId: string): boolean {
   const projects = getProjects();
   const nextProjects = projects.filter((project) => project.id !== projectId);
