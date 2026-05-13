@@ -31,6 +31,10 @@ export async function startServer(options: { openBrowser?: boolean } = {}): Prom
     return reply.type("text/css").send(await readFile(join(webRoot, "style.css"), "utf8"));
   });
 
+  app.get("/favicon.ico", async (_request, reply) => {
+    return reply.type("image/x-icon").send(await readFile(join(webRoot, "favicon.ico")));
+  });
+
   const url = await app.listen({
     host: "127.0.0.1",
     port: settings.port,
