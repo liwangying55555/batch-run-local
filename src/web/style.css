@@ -13,6 +13,7 @@
 
 body {
   margin: 0;
+  overflow: hidden;
 }
 
 button,
@@ -54,7 +55,7 @@ input {
   display: grid;
   grid-template-columns: 380px minmax(0, 1fr);
   gap: 20px;
-  min-height: 100vh;
+  height: 100vh;
   padding: 20px;
 }
 
@@ -66,12 +67,25 @@ input {
   padding: 20px;
 }
 
+.sidebar,
+.content {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
 .panel-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
 }
 
 .eyebrow {
@@ -112,6 +126,22 @@ h2 {
 .script-list {
   display: grid;
   gap: 10px;
+}
+
+.project-list,
+.content-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.project-list {
+  flex: 1;
+  align-content: start;
+}
+
+.content-body {
+  flex: 1;
 }
 
 .project-card,
@@ -202,8 +232,47 @@ h2 {
   white-space: pre-wrap;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(15 23 42 / 42%);
+  padding: 20px;
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.modal {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border: 1px solid #dbe3ef;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgb(15 23 42 / 24%);
+  padding: 20px;
+}
+
+.modal .form {
+  margin-bottom: 0;
+}
+
 @media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
   .app {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar,
+  .content {
+    max-height: calc(100vh - 40px);
   }
 }

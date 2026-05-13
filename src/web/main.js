@@ -13,6 +13,29 @@ const projectForm = document.querySelector("#projectForm");
 const projectCount = document.querySelector("#projectCount");
 const refreshProjects = document.querySelector("#refreshProjects");
 const openProjectRoot = document.querySelector("#openProjectRoot");
+const openProjectConfig = document.querySelector("#openProjectConfig");
+const closeProjectConfig = document.querySelector("#closeProjectConfig");
+const projectConfigModal = document.querySelector("#projectConfigModal");
+const projectNameInput = document.querySelector("#projectName");
+
+openProjectConfig.addEventListener("click", () => {
+  projectConfigModal.hidden = false;
+  projectNameInput.focus();
+});
+
+closeProjectConfig.addEventListener("click", closeConfigModal);
+
+projectConfigModal.addEventListener("click", (event) => {
+  if (event.target === projectConfigModal) {
+    closeConfigModal();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !projectConfigModal.hidden) {
+    closeConfigModal();
+  }
+});
 
 projectForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -30,6 +53,7 @@ projectForm.addEventListener("submit", async (event) => {
   });
 
   projectForm.reset();
+  closeConfigModal();
   setStatus(`已新增项目：${name}`);
   await loadProjects();
 });
@@ -62,7 +86,7 @@ function renderProjects() {
   projectCount.textContent = `共 ${state.projects.length} 个项目`;
 
   if (state.projects.length === 0) {
-    projectList.innerHTML = `<div class="empty">暂无项目，请先新增。</div>`;
+    projectList.innerHTML = `<div class="empty">暂无项目，请点击“项目配置”进行配置。</div>`;
     currentProjectTitle.textContent = "请选择项目";
     openProjectRoot.disabled = true;
     scriptList.textContent = "选择左侧项目后读取 scripts";
@@ -228,6 +252,10 @@ async function moveProject(draggedProjectId, targetProjectId, insertAfterTarget)
 function shouldDropAfter(event, element) {
   const rect = element.getBoundingClientRect();
   return event.clientY > rect.top + rect.height / 2;
+}
+
+function closeConfigModal() {
+  projectConfigModal.hidden = true;
 }
 
 async function deleteProject(project) {

@@ -12,23 +12,14 @@
         <div class="panel-header">
           <div>
             <p class="eyebrow">Batch Run</p>
-            <h1>项目配置</h1>
+            <h1>项目列表</h1>
             <p id="projectCount" class="project-count">共 0 个项目</p>
           </div>
-          <button id="refreshProjects" type="button">刷新</button>
+          <div class="header-actions">
+            <button id="openProjectConfig" class="secondary" type="button">项目配置</button>
+            <button id="refreshProjects" type="button">刷新</button>
+          </div>
         </div>
-
-        <form id="projectForm" class="form">
-          <label>
-            项目名称
-            <input id="projectName" name="name" placeholder="例如：后台服务" required />
-          </label>
-          <label>
-            项目根路径
-            <input id="projectRoot" name="root" placeholder="C:\wang\project\server" required />
-          </label>
-          <button type="submit">新增项目</button>
-        </form>
 
         <div id="projectList" class="project-list"></div>
       </section>
@@ -42,10 +33,36 @@
           <button id="openProjectRoot" class="secondary" type="button" disabled>打开项目目录</button>
         </div>
 
-        <div id="scriptList" class="script-list empty">选择左侧项目后读取 scripts</div>
-        <pre id="status" class="status"></pre>
+        <div class="content-body">
+          <div id="scriptList" class="script-list empty">选择左侧项目后读取 scripts</div>
+          <pre id="status" class="status"></pre>
+        </div>
       </section>
     </main>
+
+    <div id="projectConfigModal" class="modal-backdrop" hidden>
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="projectConfigTitle">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Project Settings</p>
+            <h2 id="projectConfigTitle">项目配置</h2>
+          </div>
+          <button id="closeProjectConfig" class="secondary" type="button">关闭</button>
+        </div>
+
+        <form id="projectForm" class="form">
+          <label>
+            项目名称
+            <input id="projectName" name="name" placeholder="例如：后台服务" required />
+          </label>
+          <label>
+            项目根路径
+            <input id="projectRoot" name="root" placeholder="C:\wang\project\server" required />
+          </label>
+          <button type="submit">新增项目</button>
+        </form>
+      </section>
+    </div>
 
     <script type="module" src="/main.js"></script>
   </body>
