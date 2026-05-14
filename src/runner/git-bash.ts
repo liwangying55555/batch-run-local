@@ -5,6 +5,24 @@ import { join } from "node:path";
 import type { AppSettings, ProjectConfig } from "../shared/types.js";
 import { findBashExecutablePath, findGitBashPath, findMinttyPath, shellSingleQuote, toGitBashPath } from "./path.js";
 
+/** Strip Git repo overrides so child processes (e.g. Vite calling `git`) use cwd discovery, not a stale inherited GIT_DIR. */
+const GIT_ENV_KEYS = [
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_INDEX_FILE",
+  "GIT_PREFIX",
+  "GIT_OBJECT_DIRECTORY",
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+] as const;
+
+function processEnvWithoutGitOverrides(): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+  for (const key of GIT_ENV_KEYS) {
+    delete env[key];
+  }
+  return env;
+}
+
 export type RunResult = {
   pid?: number;
   command: string;
@@ -30,11 +48,13 @@ export function runScriptInGitBash(project: ProjectConfig, scriptName: string, s
         detached: true,
         stdio: "ignore",
         windowsHide: false,
+        env: processEnvWithoutGitOverrides(),
       })
     : spawn("cmd.exe", ["/d", "/c", "start", title, "/D", project.root, bashPath, "--login", gitBashScriptPath], {
         detached: true,
         stdio: "ignore",
         windowsHide: false,
+        env: processEnvWithoutGitOverrides(),
       });
 
   child.unref();
@@ -58,6 +78,7 @@ function writeRunScript(project: ProjectConfig, scriptName: string, title: strin
     "set +e",
     `cd ${shellSingleQuote(gitBashRoot)}`,
     'rm -f "$0" >/dev/null 2>&1 || true',
+    `unset ${GIT_ENV_KEYS.join(" ")}`,
     `__batch_run_title=${shellSingleQuote(title)}`,
     "set_batch_run_title() { printf '\\033]0;%s\\007' \"$__batch_run_title\"; }",
     "set_batch_run_title",
