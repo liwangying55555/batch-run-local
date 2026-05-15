@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import open from "open";
 import { addProject, getProject, getProjects, removeProject, reorderProjects, updateProject } from "../config/store.js";
+import { readGitBranches, switchGitBranch } from "../project/git.js";
 import { readPackageScripts } from "../project/package-json.js";
 import { runScriptInGitBash } from "../runner/git-bash.js";
 import type { AppSettings } from "../shared/types.js";
@@ -14,6 +15,10 @@ type UpdateProjectBody = AddProjectBody;
 
 type RunScriptBody = {
   script?: string;
+};
+
+type SwitchBranchBody = {
+  branch?: string;
 };
 
 type ReorderProjectsBody = {
@@ -92,6 +97,46 @@ export async function registerApiRoutes(app: FastifyInstance, settings: AppSetti
 
     const scripts = await readPackageScripts(project.root);
     return { scripts };
+  });
+
+  app.get<{ Params: { id: string } }>("/api/projects/:id/branches", async (request, reply) => {
+    const project = getProject(request.params.id);
+
+    if (!project) {
+      return reply.code(404).send({ message: "项目不存在" });
+    }
+
+    try {
+      return await readGitBranches(project.root);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "读取 Git 分支失败";
+      return reply.code(400).send({ message });
+    }
+  });
+
+  app.post<{ Params: { id: string }; Body: SwitchBranchBody }>("/api/projects/:id/branches/switch", async (request, reply) => {
+    const project = getProject(request.params.id);
+    const branch = request.body.branch?.trim();
+
+    if (!project) {
+      return reply.code(404).send({ message: "项目不存在" });
+    }
+
+    if (!branch) {
+      return reply.code(400).send({ message: "分支名称不能为空" });
+    }
+
+    try {
+      const branchState = await switchGitBranch(project.root, branch);
+      const scripts = await readPackageScripts(project.root);
+      return {
+        ...branchState,
+        scripts,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "切换 Git 分支失败";
+      return reply.code(400).send({ message });
+    }
   });
 
   app.post<{ Params: { id: string } }>("/api/projects/:id/open", async (request, reply) => {

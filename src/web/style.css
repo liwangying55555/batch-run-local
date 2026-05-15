@@ -16,7 +16,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -50,7 +51,8 @@ button:disabled {
   opacity: 0.6;
 }
 
-input {
+input,
+select {
   width: 100%;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
@@ -86,6 +88,10 @@ input {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.panel-header-left{
+  flex: 1;
 }
 
 .header-actions {
@@ -148,6 +154,19 @@ h2 {
 
 .content-body {
   flex: 1;
+}
+
+.branch-panel {
+  width: min(260px, 100%);
+  flex-shrink: 0;
+}
+
+.branch-panel select {
+  padding: 4px 8px;
+}
+
+.branch-panel[hidden] {
+  display: none;
 }
 
 .project-card,

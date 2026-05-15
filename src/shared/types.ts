@@ -18,3 +18,14 @@ export type AppConfig = {
 };
 
 export type PackageScripts = Record<string, string>;
+
+export type GitBranch = {
+  name: string;
+  current: boolean;
+  remote: boolean;
+};
+
+export type GitBranchState = {
+  current?: string;
+  branches: GitBranch[];
+};

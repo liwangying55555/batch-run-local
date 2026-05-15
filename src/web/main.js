@@ -1,5 +1,6 @@
 const state = {
   projects: [],
+  branches: [],
   currentProjectId: undefined,
   draggedProjectId: undefined,
   suppressProjectClick: false,
@@ -21,6 +22,8 @@ const projectNameInput = document.querySelector("#projectName");
 const projectRootInput = document.querySelector("#projectRoot");
 const projectConfigTitle = document.querySelector("#projectConfigTitle");
 const projectSubmit = document.querySelector("#projectSubmit");
+const branchPanel = document.querySelector("#branchPanel");
+const branchSelect = document.querySelector("#branchSelect");
 
 openProjectConfig.addEventListener("click", openCreateProjectModal);
 
@@ -73,13 +76,40 @@ openProjectRoot.addEventListener("click", async () => {
   setStatus("已打开项目目录。");
 });
 
+branchSelect.addEventListener("change", async () => {
+  if (!state.currentProjectId || !branchSelect.value) {
+    return;
+  }
+
+  const branch = branchSelect.value;
+  branchSelect.disabled = true;
+  scriptList.textContent = `正在切换到 ${branch}...`;
+
+  try {
+    const data = await request(`/api/projects/${state.currentProjectId}/branches/switch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ branch }),
+    });
+    renderBranches(data);
+    renderScripts(state.currentProjectId, data.scripts);
+    setStatus(`已切换到分支：${data.current ?? branch}`);
+  } finally {
+    branchSelect.disabled = false;
+  }
+});
+
 async function loadProjects() {
   const data = await request("/api/projects");
   state.projects = data.projects;
   if (!state.projects.some((project) => project.id === state.currentProjectId)) {
     state.currentProjectId = undefined;
+    state.branches = [];
     currentProjectTitle.textContent = "请选择项目";
     openProjectRoot.disabled = true;
+    hideBranchPanel();
   }
   renderProjects();
 }
@@ -91,6 +121,7 @@ function renderProjects() {
     projectList.innerHTML = `<div class="empty">暂无项目，请点击“项目配置”进行配置。</div>`;
     currentProjectTitle.textContent = "请选择项目";
     openProjectRoot.disabled = true;
+    hideBranchPanel();
     scriptList.textContent = "选择左侧项目后读取 scripts";
     return;
   }
@@ -175,9 +206,20 @@ async function selectProject(projectId) {
   currentProjectTitle.textContent = project?.name ?? "请选择项目";
   openProjectRoot.disabled = !project;
   scriptList.textContent = "正在读取 scripts...";
+  branchPanel.hidden = false;
+  branchSelect.innerHTML = `<option value="">读取中...</option>`;
+  branchSelect.disabled = true;
 
-  const data = await request(`/api/projects/${projectId}/scripts`);
-  renderScripts(projectId, data.scripts);
+  const [scriptData, branchData] = await Promise.all([
+    request(`/api/projects/${projectId}/scripts`),
+    request(`/api/projects/${projectId}/branches`).catch((error) => ({
+      current: undefined,
+      branches: [],
+      message: error.message,
+    })),
+  ]);
+  renderBranches(branchData);
+  renderScripts(projectId, scriptData.scripts);
 }
 
 function renderScripts(projectId, scripts) {
@@ -216,6 +258,38 @@ async function runScript(projectId, script) {
   });
 
   setStatus(`已打开 Git Bash 执行：npm run ${script}${data.pid ? `\nPID: ${data.pid}` : ""}`);
+}
+
+function renderBranches(data) {
+  state.branches = data.branches ?? [];
+
+  if (data.message) {
+    branchSelect.innerHTML = `<option value="">${escapeHtml(data.message)}</option>`;
+    branchSelect.disabled = true;
+    return;
+  }
+
+  branchPanel.hidden = false;
+
+  if (state.branches.length === 0) {
+    branchSelect.innerHTML = `<option value="">未读取到分支</option>`;
+    branchSelect.disabled = true;
+    return;
+  }
+
+  branchSelect.innerHTML = state.branches
+    .map((branch) => {
+      const selected = branch.current ? " selected" : "";
+      return `<option value="${escapeHtml(branch.name)}"${selected}>${escapeHtml(branch.name)}</option>`;
+    })
+    .join("");
+  branchSelect.disabled = false;
+}
+
+function hideBranchPanel() {
+  branchPanel.hidden = true;
+  branchSelect.innerHTML = "";
+  branchSelect.disabled = true;
 }
 
 async function moveProject(draggedProjectId, targetProjectId, insertAfterTarget) {
@@ -299,8 +373,10 @@ async function deleteProject(project) {
 
   if (state.currentProjectId === project.id) {
     state.currentProjectId = undefined;
+    state.branches = [];
     currentProjectTitle.textContent = "请选择项目";
     openProjectRoot.disabled = true;
+    hideBranchPanel();
     scriptList.textContent = "选择左侧项目后读取 scripts";
   }
 
