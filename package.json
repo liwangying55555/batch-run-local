@@ -24,6 +24,14 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liwangying55555/batch-run-local.git"
+  },
+  "bugs": {
+    "url": "https://github.com/liwangying55555/batch-run-local/issues"
+  },
+  "homepage": "https://github.com/liwangying55555/batch-run-local#readme",
   "engines": {
     "node": ">=18"
   },
