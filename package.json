@@ -1,6 +1,6 @@
 {
   "name": "batch-run-local",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Manage and run package.json scripts across local projects from CLI and a local web UI.",
   "type": "module",
   "bin": {
