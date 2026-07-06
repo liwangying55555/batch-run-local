@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import open from "open";
-import { addProject, getProject, getProjects, removeProject, reorderProjects, updateProject } from "../config/store.js";
+import { addProject, getProject, getProjects, getTagOrder, getTags, removeProject, reorderProjects, reorderTagGroups, updateProject } from "../config/store.js";
 import { readGitBranches, switchGitBranch } from "../project/git.js";
 import { readPackageScripts } from "../project/package-json.js";
 import { runScriptInGitBash } from "../runner/git-bash.js";
@@ -9,6 +9,7 @@ import type { AppSettings } from "../shared/types.js";
 type AddProjectBody = {
   name?: string;
   root?: string;
+  tag?: string;
 };
 
 type UpdateProjectBody = AddProjectBody;
@@ -25,9 +26,19 @@ type ReorderProjectsBody = {
   projectIds?: string[];
 };
 
+type ReorderTagGroupsBody = {
+  tagKeys?: string[];
+};
+
 export async function registerApiRoutes(app: FastifyInstance, settings: AppSettings): Promise<void> {
   app.get("/api/projects", async () => ({
     projects: getProjects(),
+    tagOrder: getTagOrder(),
+  }));
+
+  app.get("/api/tags", async () => ({
+    tags: getTags(),
+    tagOrder: getTagOrder(),
   }));
 
   app.post<{ Body: AddProjectBody }>("/api/projects", async (request, reply) => {
@@ -38,7 +49,7 @@ export async function registerApiRoutes(app: FastifyInstance, settings: AppSetti
       return reply.code(400).send({ message: "项目名称和根路径不能为空" });
     }
 
-    const project = await addProject({ name, root });
+    const project = await addProject({ name, root, tag: request.body.tag });
     return { project };
   });
 
@@ -50,9 +61,30 @@ export async function registerApiRoutes(app: FastifyInstance, settings: AppSetti
     }
 
     try {
-      return { projects: reorderProjects(projectIds) };
+      return {
+        projects: reorderProjects(projectIds),
+        tagOrder: getTagOrder(),
+      };
     } catch (error) {
       const message = error instanceof Error ? error.message : "保存项目排序失败";
+      return reply.code(400).send({ message });
+    }
+  });
+
+  app.put<{ Body: ReorderTagGroupsBody }>("/api/tag-order", async (request, reply) => {
+    const tagKeys = request.body.tagKeys;
+
+    if (!Array.isArray(tagKeys) || !tagKeys.every((tagKey) => typeof tagKey === "string")) {
+      return reply.code(400).send({ message: "标签排序数据无效" });
+    }
+
+    try {
+      return {
+        projects: reorderTagGroups(tagKeys),
+        tagOrder: getTagOrder(),
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "保存标签排序失败";
       return reply.code(400).send({ message });
     }
   });
@@ -66,7 +98,7 @@ export async function registerApiRoutes(app: FastifyInstance, settings: AppSetti
     }
 
     try {
-      const project = await updateProject(request.params.id, { name, root });
+      const project = await updateProject(request.params.id, { name, root, tag: request.body.tag });
       if (!project) {
         return reply.code(404).send({ message: "项目不存在" });
       }

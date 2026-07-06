@@ -1,4 +1,9 @@
-import { getConfigPath, getProjects } from "../../config/store.js";
+import { getConfigPath, getProjects, getTagOrder } from "../../config/store.js";
+import { UNGROUPED_TAG, UNGROUPED_TAG_LABEL } from "../../shared/types.js";
+
+function getTagLabel(tagKey: string): string {
+  return tagKey === UNGROUPED_TAG ? UNGROUPED_TAG_LABEL : tagKey;
+}
 
 export function listCommand(): void {
   const projects = getProjects();
@@ -9,11 +14,22 @@ export function listCommand(): void {
     return;
   }
 
-  for (const project of projects) {
-    console.log(`${project.name}`);
-    console.log(`  id: ${project.id}`);
-    console.log(`  root: ${project.root}`);
+  const tagOrder = getTagOrder();
+
+  for (const tagKey of tagOrder) {
+    const groupedProjects = projects.filter((project) => (project.tag ?? UNGROUPED_TAG) === tagKey);
+    if (groupedProjects.length === 0) {
+      continue;
+    }
+
+    console.log(`[${getTagLabel(tagKey)}]`);
+    for (const project of groupedProjects) {
+      console.log(`  ${project.name}`);
+      console.log(`    id: ${project.id}`);
+      console.log(`    root: ${project.root}`);
+    }
+    console.log("");
   }
 
-  console.log(`\n配置文件: ${getConfigPath()}`);
+  console.log(`配置文件: ${getConfigPath()}`);
 }

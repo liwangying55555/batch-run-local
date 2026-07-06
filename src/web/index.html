@@ -56,12 +56,21 @@
 
         <form id="projectForm" class="form">
           <label>
-            项目名称
+            <span>
+              项目名称<span class="required">*</span>
+            </span>
             <input id="projectName" name="name" placeholder="例如：后台服务" required />
           </label>
           <label>
-            项目根路径
+            <span>
+              项目根路径<span class="required">*</span>
+            </span>
             <input id="projectRoot" name="root" placeholder="C:\wang\project\server" required />
+          </label>
+          <label>
+            标签
+            <input id="projectTag" name="tag" list="tagOptions" placeholder="选择已有标签，或输入新标签（不填默认未分组）" />
+            <datalist id="tagOptions"></datalist>
           </label>
           <button id="projectSubmit" type="submit" class="secondary">新增项目</button>
         </form>
