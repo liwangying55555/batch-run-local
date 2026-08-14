@@ -20,6 +20,7 @@ const currentProjectTitle = document.querySelector("#currentProjectTitle");
 const projectForm = document.querySelector("#projectForm");
 const projectCount = document.querySelector("#projectCount");
 const refreshProjects = document.querySelector("#refreshProjects");
+const collapseAllTagsBtn = document.querySelector("#collapseAllTags");
 const openProjectRoot = document.querySelector("#openProjectRoot");
 const openProjectConfig = document.querySelector("#openProjectConfig");
 const closeProjectConfig = document.querySelector("#closeProjectConfig");
@@ -75,6 +76,7 @@ projectForm.addEventListener("submit", async (event) => {
 });
 
 refreshProjects.addEventListener("click", loadProjects);
+collapseAllTagsBtn.addEventListener("click", collapseAllTags);
 
 openProjectRoot.addEventListener("click", async () => {
   if (!state.currentProjectId) {
@@ -170,6 +172,14 @@ function isTagExpanded(tagKey) {
 
 function toggleTagExpand(tagKey) {
   state.tagExpandState.set(tagKey, !isTagExpanded(tagKey));
+  renderProjects();
+}
+
+function collapseAllTags() {
+  const tagOrder = state.tagOrder.length > 0 ? state.tagOrder : deriveTagOrder(state.projects);
+  for (const tagKey of tagOrder) {
+    state.tagExpandState.set(tagKey, false);
+  }
   renderProjects();
 }
 
